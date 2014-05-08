@@ -2,6 +2,10 @@ RewriteEngine On
 RewriteCond %{REQUEST_METHOD} ^TRACE
 RewriteRule .* - [F]
 
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^ index.php [L]
+
 <Files ~ "includes|local">
    Order allow,deny
     Deny from all

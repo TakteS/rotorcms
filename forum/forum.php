@@ -7,14 +7,12 @@
 #              ICQ  :  36-44-66               #
 #            Skype  :  vantuzilla             #
 #---------------------------------------------#
-require_once ('../includes/start.php');
-require_once ('../includes/functions.php');
-require_once ('../includes/header.php');
-include_once ('../themes/header.php');
 
 $act = (isset($_GET['act'])) ? check($_GET['act']) : 'index';
 $fid = (isset($_GET['fid'])) ? abs(intval($_GET['fid'])) : 0;
 $start = (isset($_GET['start'])) ? abs(intval($_GET['start'])) : 0;
+
+defined('BASEDIR') or exit(header('Location: /forum/'.$fid));
 
 show_title('Форум '.$config['title']);
 
@@ -156,6 +154,4 @@ default:
 endswitch;
 
 render('includes/back', array('link' => 'index.php', 'title' => 'К форумам', 'icon' => 'reload.gif'));
-
-include_once ('../themes/footer.php');
 ?>
