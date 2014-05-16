@@ -18,7 +18,7 @@ if (!empty($data[0])) {
 
 	if ($data[0] == 'forum') {
 		$_GET['fid'] = $data[1];
-		include_once($data[0].'/forum.php');
+		include_once('forum/forum.php');
 	}
 
 } else {
