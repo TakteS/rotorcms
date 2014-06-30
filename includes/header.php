@@ -153,7 +153,6 @@ if ($udata = is_user()) {
 	$config['forumpost']  = $udata['users_postforum'];   # Вывод сообщений в форуме
 	$config['forumtem']   = $udata['users_themesforum']; # Вывод тем в форуме
 	$config['boardspost'] = $udata['users_postboard'];   # Вывод объявлений
-	$config['timezone']   = $udata['users_timezone'];    # Временной сдвиг
 	$config['privatpost'] = $udata['users_postprivat'];  # Вывод писем в привате
 	$config['navigation'] = $udata['users_navigation'];  # Быстрый переход
 
@@ -169,7 +168,7 @@ if ($udata = is_user()) {
 		}
 	}
 
-	// ---------------------- функция проверки ip и браузера -----------------------//
+	// --------------------- Проверка соответствия ip-адреса ---------------------//
 	if (!empty($udata['users_ipbinding'])) {
 		if ($_SESSION['my_ip'] != $ip) {
 			$_SESSION = array();
@@ -180,7 +179,13 @@ if ($udata = is_user()) {
 		}
 	}
 
-	// ------------------------ Запись текущей страницы для админов -----------------------------//
+	// ---------------------- Получение ежедневного бонуса -----------------------//
+	if (isset($udata['users_timebonus']) && $udata['users_timebonus'] < time() - 82800) {  // Получение бонуса каждые 23 часа
+		DB::run() -> query("UPDATE `users` SET `users_timebonus`=?, `users_money`=`users_money`+? WHERE `users_login`=? LIMIT 1;", array(SITETIME, $config['bonusmoney'], $log));
+		notice('Получен ежедневный бонус '.moneys($config['bonusmoney']).'!');
+	}
+
+	// ------------------ Запись текущей страницы для админов --------------------//
 	if (strstr($php_self, 'admin/')) {
 		DB::run() -> query("INSERT INTO `admlog` (`admlog_user`, `admlog_request`, `admlog_referer`, `admlog_ip`, `admlog_brow`, `admlog_time`) VALUES (?, ?, ?, ?, ?, ?);", array($log, $request_uri, $http_referer, $ip, $brow, SITETIME));
 

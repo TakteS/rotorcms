@@ -106,7 +106,7 @@ if (is_admin(array(101))) {
 
 									save_setting();
 
-									$_SESSION['note'] = 'Настройки сайта успешно изменены!';
+									notice('Настройки сайта успешно изменены!');
 									redirect("setting.php?act=setzero");
 
 								} else {
@@ -151,16 +151,7 @@ if (is_admin(array(101))) {
 				echo 'Ключ для паролей:<br /><input name="keypass" maxlength="25" value="'.$setting['keypass'].'" /><br />';
 				echo 'Лимит запросов с IP (0 - Выкл):<br /><input name="doslimit" maxlength="3" value="'.$setting['doslimit'].'" /><br />';
 
-				# ----------------------------------------#
-				$arrtimezone = range(-12, 12);
-
-				echo 'Временной сдвиг:<br />';
-				echo '<select name="timezone">';
-				foreach($arrtimezone as $zone) {
-					$selected = ($setting['timezone'] == $zone) ? ' selected="selected"' : '';
-					echo '<option value="'.$zone.'"'.$selected.'>'.$zone.'</option>';
-				}
-				echo '</select><br />';
+				echo 'Временная зона:<br /><input name="timezone" maxlength="50" value="'.$setting['timezone'].'" /><br />';
 
 				# ----------------------------------------#
 				echo 'Wap-тема по умолчанию:<br />';
@@ -319,7 +310,7 @@ if (is_admin(array(101))) {
 
 						save_setting();
 
-						$_SESSION['note'] = 'Настройки сайта успешно изменены!';
+						notice('Настройки сайта успешно изменены!');
 						redirect("setting.php?act=setone");
 
 					} else {
@@ -396,7 +387,7 @@ if (is_admin(array(101))) {
 
 					save_setting();
 
-					$_SESSION['note'] = 'Настройки сайта успешно изменены!';
+					notice('Настройки сайта успешно изменены!');
 					redirect("setting.php?act=settwo");
 
 				} else {
@@ -485,7 +476,7 @@ if (is_admin(array(101))) {
 
 					save_setting();
 
-					$_SESSION['note'] = 'Настройки сайта успешно изменены!';
+					notice('Настройки сайта успешно изменены!');
 					redirect("setting.php?act=setthree");
 
 				} else {
@@ -557,7 +548,7 @@ if (is_admin(array(101))) {
 
 					save_setting();
 
-					$_SESSION['note'] = 'Настройки сайта успешно изменены!';
+					notice('Настройки сайта успешно изменены!');
 					redirect("setting.php?act=setfour");
 
 				} else {
@@ -618,7 +609,7 @@ if (is_admin(array(101))) {
 
 					save_setting();
 
-					$_SESSION['note'] = 'Настройки сайта успешно изменены!';
+					notice('Настройки сайта успешно изменены!');
 					redirect("setting.php?act=setfive");
 
 				} else {
@@ -685,7 +676,7 @@ if (is_admin(array(101))) {
 
 					save_setting();
 
-					$_SESSION['note'] = 'Настройки сайта успешно изменены!';
+					notice('Настройки сайта успешно изменены!');
 					redirect("setting.php?act=setload");
 
 				} else {
@@ -743,7 +734,7 @@ if (is_admin(array(101))) {
 
 					save_setting();
 
-					$_SESSION['note'] = 'Настройки сайта успешно изменены!';
+					notice('Настройки сайта успешно изменены!');
 					redirect("setting.php?act=setblog");
 
 				} else {
@@ -823,7 +814,7 @@ if (is_admin(array(101))) {
 
 					save_setting();
 
-					$_SESSION['note'] = 'Настройки сайта успешно изменены!';
+					notice('Настройки сайта успешно изменены!');
 					redirect("setting.php?act=setseven");
 
 				} else {
@@ -897,7 +888,7 @@ if (is_admin(array(101))) {
 
 					save_setting();
 
-					$_SESSION['note'] = 'Настройки сайта успешно изменены!';
+					notice('Настройки сайта успешно изменены!');
 					redirect("setting.php?act=seteight");
 
 				} else {
@@ -959,7 +950,7 @@ if (is_admin(array(101))) {
 		*
 		* save_setting();
 		*
-		* $_SESSION['note'] = 'Настройки сайта успешно изменены!';
+		* notice('Настройки сайта успешно изменены!');
 		* redirect("setting.php");
 		*
 		* } else {show_error('Ошибка! Все поля настроек обязательны для заполнения!');}
@@ -1031,7 +1022,7 @@ if (is_admin(array(101))) {
 								$dbr -> execute($captcha_credits, 'captcha_credits');
 								save_setting();
 
-								$_SESSION['note'] = 'Настройки сайта успешно изменены!';
+								notice('Настройки сайта успешно изменены!');
 								redirect("setting.php?act=setten");
 
 							} else {
@@ -1081,6 +1072,9 @@ if (is_admin(array(101))) {
 			echo 'Актива для изменения статуса: <br /><input name="editstatuspoint" maxlength="4" value="'.$setting['editstatuspoint'].'" /><br />';
 			echo 'Стоимость изменения статуса: <br /><input name="editstatusmoney" maxlength="9" value="'.$setting['editstatusmoney'].'" /><br /><hr />';
 
+			echo 'Ежедневный бонус: <br /><input name="bonusmoney" maxlength="10" value="'.$setting['bonusmoney'].'" /><br />';
+			echo 'Денег за регистрацию: <br /><input name="registermoney" maxlength="10" value="'.$setting['registermoney'].'" /><br /><hr />';
+
 			echo '<input value="Изменить" type="submit" /></form></div><br />';
 
 			echo '<img src="/images/img/back.gif" alt="image" /> <a href="setting.php">Вернуться</a><br />';
@@ -1095,7 +1089,7 @@ if (is_admin(array(101))) {
 			$editstatus = (empty($_POST['editstatus'])) ? 0 : 1;
 
 			if ($uid == $_SESSION['token']) {
-				if ($_POST['avatarupload'] != "" && $_POST['avatarpoints'] != "" && $_POST['avatarsize'] != "" && $_POST['avatarweight'] != "" && $_POST['editnickpoint'] != "" && $_POST['sendmoneypoint'] != "" && $_POST['editratingpoint'] != "" && $_POST['editforumpoint'] != "" && $_POST['editnickpoint'] != "" && $_POST['editstatuspoint'] != "" && $_POST['editstatusmoney'] != "") {
+				if ($_POST['avatarupload'] != "" && $_POST['avatarpoints'] != "" && $_POST['avatarsize'] != "" && $_POST['avatarweight'] != "" && $_POST['editnickpoint'] != "" && $_POST['sendmoneypoint'] != "" && $_POST['editratingpoint'] != "" && $_POST['editforumpoint'] != "" && $_POST['editnickpoint'] != "" && $_POST['editstatuspoint'] != "" && $_POST['editstatusmoney'] != "" && $_POST['bonusmoney'] != "" && $_POST['registermoney'] != "") {
 
 					$dbr = DB::run() -> prepare("UPDATE `setting` SET `setting_value`=? WHERE `setting_name`=?;");
 					$dbr -> execute(intval($_POST['avatarupload']), 'avatarupload');
@@ -1111,10 +1105,12 @@ if (is_admin(array(101))) {
 					$dbr -> execute($editstatus, 'editstatus');
 					$dbr -> execute(intval($_POST['editstatuspoint']), 'editstatuspoint');
 					$dbr -> execute(intval($_POST['editstatusmoney']), 'editstatusmoney');
+					$dbr -> execute(intval($_POST['bonusmoney']), 'bonusmoney');
+					$dbr -> execute(intval($_POST['registermoney']), 'registermoney');
 
 					save_setting();
 
-					$_SESSION['note'] = 'Настройки сайта успешно изменены!';
+					notice('Настройки сайта успешно изменены!');
 					redirect("setting.php?act=seteleven");
 
 				} else {
@@ -1168,7 +1164,7 @@ if (is_admin(array(101))) {
 
 					save_setting();
 
-					$_SESSION['note'] = 'Настройки сайта успешно изменены!';
+					notice('Настройки сайта успешно изменены!');
 					redirect("setting.php?act=setadv");
 
 				} else {
@@ -1199,6 +1195,7 @@ if (is_admin(array(101))) {
 
 			$checked = ($setting['copyfoto'] == 1) ? ' checked="checked"' : '';
 			echo '<input name="copyfoto" type="checkbox" value="1"'.$checked.' /> Наложение копирайта<br />';
+			echo '<img src="/images/img/watermark.png" alt="watermark" title="'.$config['home'].'/images/img/watermark.png" /><br />';
 
 			echo '<input value="Изменить" type="submit" /></form></div><br />';
 
@@ -1228,7 +1225,7 @@ if (is_admin(array(101))) {
 
 					save_setting();
 
-					$_SESSION['note'] = 'Настройки сайта успешно изменены!';
+					notice('Настройки сайта успешно изменены!');
 					redirect("setting.php?act=setimage");
 
 				} else {

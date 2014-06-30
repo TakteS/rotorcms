@@ -34,12 +34,12 @@ function makestime($time) {
 
 // --------------------------- Функция временного сдвига -----------------------------//
 function date_fixed($timestamp, $format = "d.m.y / H:i") {
-	global $config;
+	global $udata;
 
 	if (!is_numeric($timestamp)) {
 		$timestamp = SITETIME;
 	}
-	$shift = $config['timezone'] * 3600;
+	$shift = $udata['users_timezone'] * 3600;
 	$datestamp = date($format, $timestamp + $shift);
 
 	$today = date("d.m.y", SITETIME + $shift);
@@ -153,14 +153,15 @@ function points($sum) {
 
 // ------------------ Функция подсветки кода -------------------------//
 function highlight_code($code) {
-	$code = nosmiles($code[1]);
+
+	if (is_array($code)) $code = $code[1];
+	$code = nosmiles($code);
 	$code = strtr($code, array('&lt;'=>'<', '&gt;'=>'>', '&amp;'=>'&', '&quot;'=>'"', '&#36;'=>'$', '&#37;'=>'%', '&#39;'=>"'", '&#92;'=>'\\', '&#94;'=>'^', '&#96;'=>'`', '&#124;' => '|', '<br />'=>"\r\n"));
 
 	$code = highlight_string($code, true);
 	$code = strtr($code, array("\r\n"=>'<br />', '://'=>'&#58//', '$'=>'&#36;', "'"=>'&#39;', '%'=>'&#37;', '\\'=>'&#92;', '`'=>'&#96;', '^'=>'&#94;', '|'=>'&#124;'));
 
-	$code = '<div class="d">'.$code.'</div>';
-	return $code;
+	return '<div class="d">'.$code.'</div>';
 }
 
 // ----------------------- Функция скрытого текста ------------------------//
@@ -181,11 +182,11 @@ function url_replace($url) {
 	global $config;
 
 	if (!isset($url[4])) {
-		$target = (strpos($url[1], $config['home']) === false) ? ' target="_blank"' : '';
+		$target = (strpos($url[1], $config['home']) === false) ? ' target="_blank" rel="nofollow"' : '';
 		$title = (utf_strlen($url[3]) > 80) ? utf_substr($url[3], 0, 70).'...' : $url[3];
 		return '<a href="'.$url[1].'"'.$target.'>'.check(rawurldecode(html_entity_decode($title, ENT_QUOTES, 'utf-8'))).'</a>';
 	} else {
-		$target = (strpos($url[4], $config['home']) === false) ? ' target="_blank"' : '';
+		$target = (strpos($url[4], $config['home']) === false) ? ' target="_blank" rel="nofollow"' : '';
 		$title = (utf_strlen($url[4]) > 80) ? utf_substr($url[4], 0, 70).'...' : $url[4];
 		return '<a href="'.$url[4].'"'.$target.'>'.check(rawurldecode(html_entity_decode($title, ENT_QUOTES, 'utf-8'))).'</a>';
 	}
@@ -892,7 +893,7 @@ function show_online() {
 
 	if ($config['onlines'] == 1) {
 		$online = stats_online();
-		echo '<a href="/pages/online.php">На сайте: '.$online[0].'/'.$online[1].'</a><br />';
+		render('includes/online', compact('online'));
 	}
 }
 
@@ -914,21 +915,7 @@ function show_counter() {
 	if ($config['incount'] > 0) {
 		$count = stats_counter();
 
-		if ($config['incount'] == 1) {
-			echo '<a href="/pages/counter.php">'.$count['count_dayhosts'].' | '.$count['count_allhosts'].'</a><br />';
-		}
-		if ($config['incount'] == 2) {
-			echo '<a href="/pages/counter.php">'.$count['count_dayhits'].' | '.$count['count_allhits'].'</a><br />';
-		}
-		if ($config['incount'] == 3) {
-			echo '<a href="/pages/counter.php">'.$count['count_dayhosts'].' | '.$count['count_dayhits'].'</a><br />';
-		}
-		if ($config['incount'] == 4) {
-			echo '<a href="/pages/counter.php">'.$count['count_allhosts'].' | '.$count['count_allhits'].'</a><br />';
-		}
-		if ($config['incount'] == 5) {
-			echo '<a href="/pages/counter.php"><img src="/upload/counters/counter.png?'.SITETIME.'" alt="counter" /></a><br />';
-		}
+		render('includes/counter', compact('count'));
 	}
 }
 
@@ -1279,81 +1266,122 @@ function addmail($mail, $subject, $messages, $sendermail="", $sendername="") {
 }
 
 // ----------------------- Постраничная навигация ------------------------//
-function page_strnavigation($link, $posts, $start, $total, $range = 3){
+function page_strnavigation($url, $posts, $start, $total, $range = 3) {
 
 	if ($total > 0) {
+		$pages = array();
 
-	   $pg_cnt = ceil($total / $posts);
-	   $cur_page = ceil(($start + 1) / $posts);
+		$pg_cnt = ceil($total / $posts);
+		$cur_page = ceil(($start + 1) / $posts);
 		$idx_fst = max($cur_page - $range, 1);
 		$idx_lst = min($cur_page + $range, $pg_cnt);
 
-		$res = 'Страницы: ';
-
 		if ($cur_page != 1) {
-			$res .='<a href="'.$link.'start='.($cur_page - 2) * $posts.'" title="Назад">&laquo;</a> ';
+			$pages[] = array(
+				'start' => (($cur_page - 2) * $posts),
+				'title' => 'Назад',
+				'name' => '&laquo;',
+			);
 		}
 
-	   if (($start - $posts) >= 0) {
-		  if ($cur_page > ($range + 1)) {
-			 $res .= ' <a href="'.$link.'start=0">1</a> ';
-			 if ($cur_page != ($range + 2)) {
-				$res .= ' ... ';
-			 }
-		  }
-	   }
+		if (($start - $posts) >= 0) {
+			if ($cur_page > ($range + 1)) {
+
+				$pages[] = array(
+					'start' => 0,
+					'title' => '1 страница',
+					'name' => 1,
+				);
+				if ($cur_page != ($range + 2)) {
+					$pages[] = array(
+						'separator' => true,
+						'name' => ' ... ',
+					);
+				}
+			}
+		}
 
 		for ($i = $idx_fst; $i <= $idx_lst; $i++) {
 			$offset_page = ($i - 1) * $posts;
 			if ($i == $cur_page) {
-				$res .= ' <span class="navcurrent">'.$i.'</span> ';
+
+				$pages[] = array(
+					'current' => true,
+					'name' => $i,
+				);
 			} else {
-				$res .= ' <a href="'.$link.'start='.$offset_page.'">'.$i.'</a> ';
+
+				$pages[] = array(
+					'start' => $offset_page,
+					'title' => $i.' страница',
+					'name' => $i,
+				);
 			}
 		}
 
-	   if (($start + $posts) < $total) {
-		  if ($cur_page < ($pg_cnt - $range)) {
-			 if ($cur_page != ($pg_cnt - $range - 1)) {
-				$res .= ' ... ';
-			 }
-			 $res .= ' <a href="'.$link.'start='.($pg_cnt - 1) * $posts.'">'.$pg_cnt.'</a> ';
-		  }
-	   }
-
-		if ($cur_page != $pg_cnt) {
-			$res .= ' <a href="'.$link.'start='.($cur_page * $posts).'" title="Вперед">&raquo;</a>';
+		if (($start + $posts) < $total) {
+			if ($cur_page < ($pg_cnt - $range)) {
+				if ($cur_page != ($pg_cnt - $range - 1)) {
+					$pages[] = array(
+						'separator' => true,
+						'name' => ' ... ',
+					);
+				}
+				$pages[] = array(
+					'start' => ($pg_cnt - 1) * $posts,
+					'title' => $pg_cnt . ' страница',
+					'name' => $pg_cnt,
+				);
+			}
 		}
 
-		echo '<hr /><div class="nav">'.$res.'</div>';
+		if ($cur_page != $pg_cnt) {
+			$pages[] = array(
+				'start' => $cur_page * $posts,
+				'title' => 'Вперед',
+				'name' => '&raquo;',
+			);
+		}
+
+		render('includes/pagination', compact('pages', 'url'));
 	}
 }
 
 // ----------------------- Вывод страниц в форуме ------------------------//
-function forum_navigation($link, $posts, $total) {
+function forum_navigation($url, $posts, $total) {
 	if ($total > 0) {
-		$ba = ceil($total / $posts);
-		$ba2 = $ba * $posts - $posts;
+
+		$pages = array();
+		$last_page = ceil($total / $posts);
+		$last_start = $last_page * $posts - $posts;
 		$max = $posts * 5;
 
 		for($i = 0; $i < $max;) {
 			if ($i < $total && $i >= 0) {
-				$ii = floor(1 + $i / $posts);
-				echo ' <a href="'.$link.'start='.$i.'">'.$ii.'</a> ';
+				$pages[] = array(
+					'start' => $i,
+					'name' => floor(1 + $i / $posts),
+				);
 			}
-
 			$i += $posts;
 		}
 
 		if ($max < $total) {
+
 			if ($max + $posts < $total) {
-				echo ' ... <a href="'.$link.'start='.$ba2.'">'.$ba.'</a>';
-			} else {
-				echo ' <a href="'.$link.'start='.$ba2.'">'.$ba.'</a>';
+				$pages[] = array(
+					'separator' => true,
+					'name' => ' ... ',
+				);
 			}
+
+			$pages[] = array(
+				'start' => $last_start,
+				'name' => $last_page,
+			);
 		}
 
-		echo '<br />';
+		render('includes/pagination_forum', compact('pages', 'url'));
 	}
 }
 
@@ -1661,7 +1689,7 @@ function show_title($header, $subheader = false) {
 	$config['subheader'] = $subheader;
 
 	if (empty($show)) {
-		echo $show = render('includes/title', array(), false);
+		echo $show = render('includes/title', array(), true);
 	}
 
 	return $config;
@@ -1795,7 +1823,7 @@ function save_advertadmin() {
 				$val['adv_title'] = '<span style="color:'.$val['adv_color'].'">'.$val['adv_title'].'</span>';
 			}
 
-			$arraylink[] = '<b><a href="'.$val['adv_url'].'" target="_blank">'.$val['adv_title'].'</a></b><br />';
+			$arraylink[] = '<b><a href="'.$val['adv_url'].'" target="_blank" rel="nofollow">'.$val['adv_title'].'</a></b><br />';
 		}
 	}
 
@@ -1831,7 +1859,7 @@ function show_advertuser() {
 				$result = $datafile[$quot_rand];
 			}
 
-			return $result.' <small><a href="/pages/reklama.php?act=all">[+]</a></small>';
+			return $result.' <small><a href="/pages/reklama.php?act=all" rel="nofollow">[+]</a></small>';
 		}
 	}
 }
@@ -1848,7 +1876,7 @@ function save_advertuser() {
 			if (!empty($val['rek_color'])) {
 				$val['rek_name'] = '<span style="color:'.$val['rek_color'].'">'.$val['rek_name'].'</span>';
 			}
-			$link = '<a href="'.$val['rek_site'].'" target="_blank">'.$val['rek_name'].'</a>';
+			$link = '<a href="'.$val['rek_site'].'" target="_blank" rel="nofollow">'.$val['rek_name'].'</a>';
 
 			if (!empty($val['rek_bold'])) {
 				$link = '<b>'.$link.'</b>';
@@ -1918,6 +1946,8 @@ function license_verification() {
 
 // ----------- Функция определения последней версии RotorCMS ------------//
 function stats_changes() {
+	global $config;
+
 	if (@filemtime(DATADIR."/temp/changes.dat") < time()-86400) {
 		if (@copy("http://visavi.net/rotorcms/rotor.txt", DATADIR."/temp/changes.dat")) {
 		} else {
@@ -2307,7 +2337,7 @@ function show_sponsors(){
 				}
 
 				$data = $advert['sponsors'][$keys[array_rand($keys)]];
-				return '<b><a href="'.$data['sponsor_url'].'">'.$data['sponsor_title'].'</a></b><br />';
+				return '<b><a href="'.$data['sponsor_url'].'" rel="nofollow">'.$data['sponsor_title'].'</a></b><br />';
 			}
 		}
 	}
@@ -2524,7 +2554,7 @@ function navigation (){
 		}
 
 		if ($navigation) {
-			render ('includes/navigation', array('navigation' => $navigation));
+			render ('includes/navigation', compact('navigation'));
 		}
 	}
 }
@@ -2539,25 +2569,24 @@ function perfomance (){
 }
 
 // ------------ Функция подключения шаблонов -----------//
-function render($view, $params = array(), $print = true){
+function render($view, $params = array(), $return = false){
 	global $config, $log, $udata;
 
 	extract($params);
 
-	ob_start();
+	if ($return) {
+		ob_start();
+	}
+
 	if (file_exists(BASEDIR.'/themes/'.$config['themes'].'/views/'.$view.'.php')){
 		include (BASEDIR.'/themes/'.$config['themes'].'/views/'.$view.'.php');
 	} else {
-		include (BASEDIR.'/themes/default/views/'.$view.'.php');
+		include (BASEDIR.'/assets/views/'.$view.'.php');
 	}
 
-	$output = ob_get_contents();
-	ob_end_clean();
-
-	if ($print)
-		echo $output;
-	else
-		return $output;
+	if ($return) {
+		return ob_get_clean();
+	}
 }
 
 // ------------ Подготовка массивов -----------//
