@@ -75,7 +75,7 @@ if ($act == "board"){
 		echo '<a href="index.php">Объявления</a> / ';
 		echo '<a href="index.php?act=new&amp;id='.$id.'">Добавить</a>';
 
-		if (is_admin(array(101,102,103,105))){
+		if (is_admin()){
 			echo ' / <a href="/admin/board.php?act=board&amp;id='.$id.'">Управление</a>';
 		}
 		echo '<hr />';

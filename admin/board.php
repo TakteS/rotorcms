@@ -16,7 +16,7 @@ $act = (isset($_GET['act'])) ? check($_GET['act']) : 'index';
 $start = (isset($_GET['start'])) ? abs(intval($_GET['start'])) : 0;
 $id = (isset($_GET['id'])) ? abs(intval($_GET['id'])) : 0;
 
-if (is_admin(array(101,102,103,105))){
+if (is_admin()){
 
 show_title('Доска объявлений');
 ############################################################################################
@@ -219,7 +219,6 @@ if ($act=="addedit") {
 $uid = check($_GET['uid']);
 $zag = check($_POST['zag']);
 $msg = check($_POST['msg']);
-if (isset($_GET['id'])) {$id = (int)$_GET['id'];} else {$id = "";}
 
 if (is_admin(array(101,102))){
 	if ($uid==$_SESSION['token']){
@@ -255,8 +254,7 @@ echo '<img src="/images/img/back.gif" alt="image" /> <a href="board.php">К об
 if ($act=="move"){
 
 	$uid = check($_GET['uid']);
-	if (isset($_GET['id'])) {$id = (int)$_GET['id'];} else {$id = "";}
-	if (isset($_GET['where'])) {$where = (int)$_GET['where'];} else {$where = "";}
+	$where = (isset($_REQUEST['where'])) ? abs(intval($_REQUEST['where'])) : "";
 
 	if (is_admin(array(101,102))){
 		if ($uid==$_SESSION['token']){
@@ -283,7 +281,7 @@ echo '<img src="/images/img/back.gif" alt="image" /> <a href="board.php">Вер�
 if ($act=="delrub") {
 
 	$uid = check($_GET['uid']);
-	if (isset($_POST['del'])) {$del = intar($_POST['del']);} else {$del = "";}
+	$del = (isset($_REQUEST['del'])) ? intar($_REQUEST['del']) : "";
 
 	if (is_admin(array(101,102))){
 		if ($uid==$_SESSION['token']){
@@ -317,7 +315,7 @@ if ($act=="delrub") {
 if ($act=="deltop") {
 
 	$uid = check($_GET['uid']);
-	if (isset($_POST['del'])) {$del = intar($_POST['del']);} else {$del = "";}
+	$del = (isset($_REQUEST['del'])) ? intar($_REQUEST['del']) : "";
 
 	if ($uid==$_SESSION['token']){
 		if ($id!=""){
